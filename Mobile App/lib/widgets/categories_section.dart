@@ -37,8 +37,37 @@ class _CategoriesSectionState extends State<CategoriesSection> {
       // Take first 4 categories
       final topCategories = allCategories.take(4).toList();
 
+      // Find and replace "anime" with "movies" after "k drama"
+      final modifiedCategories = <Category>[];
+      bool foundKDrama = false;
+      
+      for (int i = 0; i < topCategories.length; i++) {
+        final category = topCategories[i];
+        final categoryName = category.name.toLowerCase();
+        
+        // Check if this is k drama
+        if (categoryName.contains('k drama') || categoryName.contains('kdrama')) {
+          foundKDrama = true;
+          modifiedCategories.add(category);
+        } 
+        // If we found k drama and this is anime, replace with movies
+        else if (foundKDrama && categoryName.contains('anime')) {
+          // Create a Movies category
+          final moviesCategory = Category(
+            id: category.id,
+            name: 'Movies',
+            slug: 'movies',
+          );
+          modifiedCategories.add(moviesCategory);
+        } 
+        // Otherwise, add the category as is
+        else {
+          modifiedCategories.add(category);
+        }
+      }
+
       setState(() {
-        categories = topCategories;
+        categories = modifiedCategories;
         isLoading = false;
       });
     } catch (e) {
@@ -145,12 +174,37 @@ class _CategoriesSectionState extends State<CategoriesSection> {
 
     return InkWell(
       onTap: () {
-        // Navigate to TV shows page with category filter
-        // Use category name to match the filter dropdown which uses names
-        Navigator.pushNamed(
-          context,
-          '/tvshows?category=${Uri.encodeComponent(category.name)}',
-        );
+        final categoryName = category.name.toLowerCase();
+        
+        // Check if this is the Movies category - navigate to movies page
+        if (categoryName == 'movies') {
+          Navigator.pushNamed(
+            context,
+            '/movies',
+          );
+        } 
+        // Check if this is 18+ category - navigate to movies page with 18+ genre filter
+        else if (categoryName.contains('18+') || categoryName.contains('18')) {
+          Navigator.pushNamed(
+            context,
+            '/movies?genre=18+',
+          );
+        }
+        // Check if this is Comedy category - navigate to TV shows page
+        else if (categoryName.contains('comedy')) {
+          Navigator.pushNamed(
+            context,
+            '/tvshows',
+          );
+        }
+        else {
+          // Navigate to TV shows page with category filter
+          // Use category name to match the filter dropdown which uses names
+          Navigator.pushNamed(
+            context,
+            '/tvshows?category=${Uri.encodeComponent(category.name)}',
+          );
+        }
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
