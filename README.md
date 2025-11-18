@@ -11,6 +11,22 @@
 [![Express](https://img.shields.io/badge/Express-4.19.2-000000?logo=express&logoColor=white)](https://expressjs.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+[![Google Play](https://img.shields.io/badge/Google_Play-Get_It_On_Google_Play-414141?logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.pro.name.generator)
+
+</div>
+
+---
+
+## 📱 Download
+
+<div align="center">
+
+[![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=com.pro.name.generator)
+
+**Available on Google Play Store**
+
+[Download Now](https://play.google.com/store/apps/details?id=com.pro.name.generator)
+
 </div>
 
 ---
@@ -18,6 +34,8 @@
 ## 📖 About
 
 **Nazaara Box** is a full-stack streaming platform that provides a seamless Netflix-like experience for watching movies and TV shows. The platform consists of a Flutter mobile application and a Node.js/Express backend API, offering comprehensive content management, search functionality, and user engagement features.
+
+This all-in-one streaming app helps you discover and watch popular dramas, movies, and anime from various regions. Whether you're into suspense, romance, action, or comedy — it delivers a smooth and enjoyable viewing experience.
 
 ## ✨ Features
 
