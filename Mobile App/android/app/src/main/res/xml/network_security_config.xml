@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for production server -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">s26.hosterpk.com</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+    
+    <!-- Default configuration for other domains -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
+

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="nazaarabox">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Nazaara Box - Movie & TV Show Streaming</title>
+  <link rel="manifest" href="manifest.json">
+  
+  <style>
+    /* Splash Screen Styles - Enhanced Cinematic Design */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      overflow: hidden;
+    }
+    
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #1a0000 0%, #000000 70%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease-out;
+    }
+    
+    /* Cinematic vignette effect */
+    #splash-screen::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.8) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    #splash-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .splash-container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+    
+    /* Logo styling - NO rounding, sharp edges */
+    #splash-logo {
+      max-width: 400px;
+      max-height: 400px;
+      width: 70%;
+      height: auto;
+      border-radius: 0 !important; /* Ensure no rounding */
+      image-rendering: crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      filter: drop-shadow(0 0 40px rgba(255, 0, 0, 0.6))
+              drop-shadow(0 0 80px rgba(255, 0, 0, 0.3))
+              drop-shadow(0 10px 30px rgba(0, 0, 0, 0.8));
+      animation: logoEntrance 1.5s ease-out forwards, 
+                 logoGlow 3s ease-in-out infinite 1.5s;
+      transform-origin: center;
+    }
+    
+    /* Logo entrance animation */
+    @keyframes logoEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(0.5) translateY(20px);
+        filter: drop-shadow(0 0 0px rgba(255, 0, 0, 0))
+                drop-shadow(0 0 0px rgba(255, 0, 0, 0))
+                drop-shadow(0 0 0px rgba(0, 0, 0, 0));
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.05) translateY(0);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: drop-shadow(0 0 40px rgba(255, 0, 0, 0.6))
+                drop-shadow(0 0 80px rgba(255, 0, 0, 0.3))
+                drop-shadow(0 10px 30px rgba(0, 0, 0, 0.8));
+      }
+    }
+    
+    /* Subtle glow pulse */
+    @keyframes logoGlow {
+      0%, 100% {
+        filter: drop-shadow(0 0 40px rgba(255, 0, 0, 0.6))
+                drop-shadow(0 0 80px rgba(255, 0, 0, 0.3))
+                drop-shadow(0 10px 30px rgba(0, 0, 0, 0.8));
+      }
+      50% {
+        filter: drop-shadow(0 0 60px rgba(255, 0, 0, 0.8))
+                drop-shadow(0 0 100px rgba(255, 0, 0, 0.4))
+                drop-shadow(0 10px 30px rgba(0, 0, 0, 0.8));
+      }
+    }
+    
+    /* Netflix-style animated text */
+    .brand-text {
+      margin-top: 30px;
+      font-family: 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      color: #E50914;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+      opacity: 0;
+      animation: brandEntrance 2s ease-out forwards;
+      text-shadow: 0 0 20px rgba(229, 9, 20, 0.8),
+                   0 0 40px rgba(229, 9, 20, 0.6),
+                   0 0 60px rgba(229, 9, 20, 0.4);
+    }
+    
+    .brand-text span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(50px) scale(0.5) rotateX(90deg);
+      animation: letterPop 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+      text-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+      transition: text-shadow 0.3s ease;
+    }
+    
+    .brand-text span:hover {
+      text-shadow: 0 0 20px rgba(229, 9, 20, 1),
+                   0 0 40px rgba(229, 9, 20, 0.8);
+    }
+    
+    /* Stagger animation for each letter - Netflix style */
+    .brand-text span:nth-child(1) { animation-delay: 0.1s; }
+    .brand-text span:nth-child(2) { animation-delay: 0.15s; }
+    .brand-text span:nth-child(3) { animation-delay: 0.2s; }
+    .brand-text span:nth-child(4) { animation-delay: 0.25s; }
+    .brand-text span:nth-child(5) { animation-delay: 0.3s; }
+    .brand-text span:nth-child(6) { animation-delay: 0.35s; }
+    .brand-text span:nth-child(7) { animation-delay: 0.4s; }
+    .brand-text span:nth-child(8) { animation-delay: 0.45s; }
+    .brand-text span:nth-child(9) { animation-delay: 0.5s; }
+    .brand-text span:nth-child(10) { animation-delay: 0.55s; }
+    
+    @keyframes brandEntrance {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    
+    @keyframes letterPop {
+      0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.3) rotateX(90deg);
+        filter: blur(10px);
+      }
+      50% {
+        transform: translateY(-8px) scale(1.15) rotateX(0deg);
+        filter: blur(2px);
+      }
+      70% {
+        transform: translateY(2px) scale(0.98) rotateX(0deg);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0deg);
+        filter: blur(0px);
+      }
+    }
+    
+    /* Enhanced loading text */
+    .loading-text {
+      margin-top: 30px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.8);
+      animation: textFade 2s ease-in-out infinite 2s;
+      opacity: 0;
+    }
+    
+    @keyframes textFade {
+      0%, 100% {
+        opacity: 0.4;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+    
+    /* Styled loading spinner */
+    .loader-container {
+      margin-top: 35px;
+      position: relative;
+      width: 60px;
+      height: 60px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .loader {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #FF0000;
+      border-right-color: #CC0000;
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3),
+                  inset 0 0 10px rgba(255, 0, 0, 0.1);
+    }
+    
+    /* Inner loader ring */
+    .loader::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      right: 4px;
+      bottom: 4px;
+      border: 2px solid transparent;
+      border-top-color: rgba(255, 0, 0, 0.6);
+      border-radius: 50%;
+      animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    /* Ambient light particles effect */
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 0, 0, 0.8) 0%, transparent 70%);
+      pointer-events: none;
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    .particle:nth-child(1) {
+      width: 3px;
+      height: 3px;
+      top: 20%;
+      left: 10%;
+      animation-delay: 0s;
+      animation-duration: 5s;
+    }
+    
+    .particle:nth-child(2) {
+      width: 4px;
+      height: 4px;
+      top: 60%;
+      left: 80%;
+      animation-delay: 1s;
+      animation-duration: 6s;
+    }
+    
+    .particle:nth-child(3) {
+      width: 2px;
+      height: 2px;
+      top: 40%;
+      left: 20%;
+      animation-delay: 2s;
+      animation-duration: 4.5s;
+    }
+    
+    .particle:nth-child(4) {
+      width: 3px;
+      height: 3px;
+      top: 70%;
+      left: 70%;
+      animation-delay: 1.5s;
+      animation-duration: 5.5s;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      50% {
+        transform: translateY(-30px) translateX(10px);
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.4;
+      }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #splash-logo {
+        max-width: 280px;
+        width: 65%;
+      }
+      
+      .brand-text {
+        font-size: 32px;
+        letter-spacing: 4px;
+        gap: 1px;
+      }
+      
+      .loading-text {
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      
+      .loader-container {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .loader {
+        width: 50px;
+        height: 50px;
+        border-width: 3px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .brand-text {
+        font-size: 24px;
+        letter-spacing: 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <!-- Floating particles for ambient effect -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    
+    <!-- Main splash content -->
+    <div class="splash-container">
+      <img id="splash-logo" src="assets/splash.png" alt="Nazaara Box">
+      
+      <!-- Netflix-style animated brand text -->
+      <div class="brand-text">
+        <span>N</span>
+        <span>A</span>
+        <span>Z</span>
+        <span>A</span>
+        <span>A</span>
+        <span>R</span>
+        <span>A</span>
+        <span>B</span>
+        <span>O</span>
+        <span>X</span>
+      </div>
+      
+      <div class="loading-text">Loading</div>
+      
+      <div class="loader-container">
+        <div class="loader"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Remove splash screen when Flutter is ready
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var splash = document.getElementById('splash-screen');
+        if (splash) {
+          splash.classList.add('fade-out');
+          setTimeout(function() {
+            splash.remove();
+          }, 500);
+        }
+      }, 1000);
+    });
+  </script>
+  
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
