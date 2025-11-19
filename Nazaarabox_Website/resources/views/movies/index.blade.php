@@ -590,15 +590,20 @@
             languages = data.languages || [];
             utilsData = data; // Store for sidebar
 
-            // Populate genre filter
+            // Populate genre filter (excluding 18+)
             const genreFilter = document.getElementById('genre-filter');
-            genres.forEach(genre => {
-                const option = document.createElement('option');
-                option.value = genre.name || genre.id;
-                option.textContent = genre.name;
-                if (selectedGenre === option.value) option.selected = true;
-                genreFilter.appendChild(option);
-            });
+            genres
+                .filter(genre => {
+                    const genreName = (genre.name || '').toLowerCase();
+                    return !genreName.includes('18+') && !genreName.includes('18');
+                })
+                .forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre.name || genre.id;
+                    option.textContent = genre.name;
+                    if (selectedGenre === option.value) option.selected = true;
+                    genreFilter.appendChild(option);
+                });
 
             // Populate category filter
             const categoryFilter = document.getElementById('category-filter');
@@ -789,9 +794,14 @@
                 </div>
                 ${movie.genres && movie.genres.length > 0 ? `
                 <div style="display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; color: #9ca3af;">
-                    ${movie.genres.slice(0, 3).map((genre, index) => {
+                    ${movie.genres
+                        .filter(genre => {
+                            const genreName = (genre.name || genre || '').toLowerCase();
+                            return !genreName.includes('18+') && !genreName.includes('18');
+                        })
+                        .slice(0, 3).map((genre, index, filteredGenres) => {
                         const genreName = genre.name || genre;
-                        return `<span>${genreName}</span>${index < Math.min(2, movie.genres.length - 1) ? ' • ' : ''}`;
+                        return `<span>${genreName}</span>${index < Math.min(2, filteredGenres.length - 1) ? ' • ' : ''}`;
                     }).join('')}
                 </div>
                 ` : ''}

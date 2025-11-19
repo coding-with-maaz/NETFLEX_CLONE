@@ -275,7 +275,9 @@
                             <!-- Genres -->
                             ${displayContent.genres && displayContent.genres.length > 0 ? `
                             <div class="hero-genres">
-                                ${displayContent.genres.slice(0, 4).map(genre => `
+                                ${displayContent.genres
+                                    .filter(genre => !genre.name || (!genre.name.toLowerCase().includes('18+') && !genre.name.toLowerCase().includes('18')))
+                                    .slice(0, 4).map(genre => `
                                     <a href="${isMovie ? '/movies?genre=' + genre.id : '/tvshows?genre=' + genre.id}" 
                                        class="hero-genre-tag">
                                         ${genre.name}

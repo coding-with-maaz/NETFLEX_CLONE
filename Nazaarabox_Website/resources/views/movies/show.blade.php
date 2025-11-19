@@ -1419,7 +1419,12 @@
                 <!-- Genres -->
                 ${movie.genres && movie.genres.length > 0 ? `
                 <div class="flex flex-wrap gap-2 mb-6">
-                    ${movie.genres.map(genre => `
+                    ${movie.genres
+                        .filter(genre => {
+                            const genreName = (genre.name || genre || '').toLowerCase();
+                            return !genreName.includes('18+') && !genreName.includes('18');
+                        })
+                        .map(genre => `
                         <span class="px-3 py-1 bg-gray-800/80 text-white rounded-full text-sm">
                             ${genre.name || genre}
                         </span>
@@ -2476,7 +2481,12 @@
                 </div>
                 ${movie.genres && movie.genres.length > 0 ? `
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px;">
-                    ${movie.genres.slice(0, 3).map((genre) => {
+                    ${movie.genres
+                        .filter(genre => {
+                            const genreName = (genre.name || genre || '').toLowerCase();
+                            return !genreName.includes('18+') && !genreName.includes('18');
+                        })
+                        .slice(0, 3).map((genre) => {
                         const genreName = genre.name || genre;
                         return `<span style="background: rgba(220, 38, 38, 0.2); color: #fca5a5; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(220, 38, 38, 0.3); font-weight: 500;">${genreName}</span>`;
                     }).join('')}

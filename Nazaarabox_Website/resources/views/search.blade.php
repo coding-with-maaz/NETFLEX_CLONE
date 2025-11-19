@@ -232,12 +232,17 @@
         const languageSelect = document.getElementById('filter-language');
 
         if (genreSelect && utilsData.genres) {
-            utilsData.genres.forEach(genre => {
-                const option = document.createElement('option');
-                option.value = genre.id;
-                option.textContent = genre.name;
-                genreSelect.appendChild(option);
-            });
+            utilsData.genres
+                .filter(genre => {
+                    const genreName = (genre.name || '').toLowerCase();
+                    return !genreName.includes('18+') && !genreName.includes('18');
+                })
+                .forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre.id;
+                    option.textContent = genre.name;
+                    genreSelect.appendChild(option);
+                });
         }
 
         if (countrySelect && utilsData.countries) {

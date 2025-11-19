@@ -628,9 +628,14 @@
                 </div>
                 ${movie.genres && movie.genres.length > 0 ? `
                 <div style="display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; color: #9ca3af;">
-                    ${movie.genres.slice(0, 3).map((genre, index) => {
+                    ${movie.genres
+                        .filter(genre => {
+                            const genreName = (genre.name || genre || '').toLowerCase();
+                            return !genreName.includes('18+') && !genreName.includes('18');
+                        })
+                        .slice(0, 3).map((genre, index, filteredGenres) => {
                         const genreName = genre.name || genre;
-                        return `<span>${genreName}</span>${index < Math.min(2, movie.genres.length - 1) ? ' • ' : ''}`;
+                        return `<span>${genreName}</span>${index < Math.min(2, filteredGenres.length - 1) ? ' • ' : ''}`;
                     }).join('')}
                 </div>
                 ` : ''}
