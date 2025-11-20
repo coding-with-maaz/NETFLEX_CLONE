@@ -68,8 +68,13 @@ class _MoviesPageState extends State<MoviesPage> {
   void initState() {
     super.initState();
     _applyInitialFilters();
-    _fetchUtilityData();
-    _fetchMovies();
+    _fetchUtilityData().then((_) {
+      // After utility data is loaded, re-apply filters to match genre properly
+      if (widget.initialFilters != null && widget.initialFilters!.containsKey('genre')) {
+        _applyInitialFilters();
+      }
+      _fetchMovies();
+    });
     _setupScrollListener();
   }
 
@@ -91,10 +96,14 @@ class _MoviesPageState extends State<MoviesPage> {
     if (widget.initialFilters != null) {
       final filters = widget.initialFilters!;
       
-      // Apply genre filter
+      // Apply genre filter - handle URL decoding for special characters like "+"
       if (filters.containsKey('genre')) {
-        _selectedGenre = filters['genre'] ?? '';
+        String genreValue = filters['genre'] ?? '';
+        // Decode URL encoding (e.g., "18%2B" becomes "18+")
+        genreValue = Uri.decodeComponent(genreValue);
+        _selectedGenre = genreValue;
         _showFilters = true; // Show filters panel
+        print('MoviesPage: Applied genre filter from URL: "$genreValue"');
       }
       
       // Apply sort_by - validate against available options
@@ -220,7 +229,56 @@ class _MoviesPageState extends State<MoviesPage> {
       };
 
       if (_selectedGenre.isNotEmpty && _selectedGenre != 'All') {
-        params['genre'] = _selectedGenre;
+        // For 18+ genre, try to find the actual genre ID or slug from the genres list
+        // Otherwise, pass the value as-is (backend should handle name/slug matching)
+        String genreParam = _selectedGenre;
+        
+        // Try to find matching genre in the list to get proper slug/ID
+        if (_genres.isNotEmpty) {
+          // First, try exact match
+          var matchingGenre = _genres.firstWhere(
+            (genre) {
+              final name = (genre['name'] ?? '').toString();
+              final slug = (genre['slug'] ?? '').toString();
+              return name.toLowerCase() == _selectedGenre.toLowerCase() || 
+                     slug.toLowerCase() == _selectedGenre.toLowerCase();
+            },
+            orElse: () => <String, dynamic>{},
+          );
+          
+          // If no exact match, try partial match for 18+
+          if (matchingGenre.isEmpty && (_selectedGenre.toLowerCase().contains('18+') || _selectedGenre.toLowerCase().contains('18'))) {
+            matchingGenre = _genres.firstWhere(
+              (genre) {
+                final name = (genre['name'] ?? '').toString().toLowerCase();
+                final slug = (genre['slug'] ?? '').toString().toLowerCase();
+                return name.contains('18+') || name.contains('18') || 
+                       slug.contains('18+') || slug.contains('18');
+              },
+              orElse: () => <String, dynamic>{},
+            );
+          }
+          
+          if (matchingGenre.isNotEmpty) {
+            // Prefer slug if available, otherwise use name, or ID if available
+            if (matchingGenre.containsKey('slug') && matchingGenre['slug'] != null && (matchingGenre['slug'] as String).isNotEmpty) {
+              genreParam = matchingGenre['slug'] as String;
+            } else if (matchingGenre.containsKey('name') && matchingGenre['name'] != null) {
+              genreParam = matchingGenre['name'] as String;
+            } else if (matchingGenre.containsKey('id') && matchingGenre['id'] != null) {
+              genreParam = matchingGenre['id'].toString();
+            }
+            print('MoviesPage: Found matching genre in list: ${matchingGenre['name']} (slug: ${matchingGenre['slug']}, id: ${matchingGenre['id']}), using: $genreParam');
+          } else {
+            print('MoviesPage: Genre "$_selectedGenre" not found in genres list, using as-is');
+            print('MoviesPage: Available genres: ${_genres.map((g) => '${g['name']} (slug: ${g['slug']})').take(10).join(', ')}');
+          }
+        } else {
+          print('MoviesPage: Genres list is empty, using genre as-is: "$_selectedGenre"');
+        }
+        
+        params['genre'] = genreParam;
+        print('MoviesPage: Setting genre param to: "$genreParam"');
       }
       if (_selectedCountry.isNotEmpty && _selectedCountry != 'All') {
         params['country'] = _selectedCountry;
@@ -240,11 +298,18 @@ class _MoviesPageState extends State<MoviesPage> {
 
       print('MoviesPage: Fetching movies with params: $params');
       print('MoviesPage: Active filters - Genre: $_selectedGenre, Category: $_selectedCategory, Country: $_selectedCountry, Year: $_selectedYear, Language: $_selectedLanguage, Rating: $_selectedRating, Sort: $_sortBy');
+      print('MoviesPage: Genres list has ${_genres.length} items');
 
       final result = await ApiService.getMovies(params: params);
       
       final newMovies = result['movies'] ?? [];
       final pagination = result['pagination'] ?? {};
+      
+      print('MoviesPage: API returned ${newMovies.length} movies');
+      if (newMovies.isEmpty && _selectedGenre.isNotEmpty) {
+        print('MoviesPage: WARNING - No movies found with genre filter "$_selectedGenre"');
+        print('MoviesPage: Available genres: ${_genres.map((g) => '${g['name']} (slug: ${g['slug']})').join(', ')}');
+      }
       // Backend returns: current_page, last_page, per_page, total, from, to
       final lastPage = pagination['last_page'] ?? pagination['lastPage'] ?? pagination['total_pages'] ?? pagination['totalPages'] ?? 1;
       final currentPageNum = pagination['current_page'] ?? pagination['currentPage'] ?? _currentPage;
@@ -654,7 +719,7 @@ class _MoviesPageState extends State<MoviesPage> {
                     _buildFilterDropdown(
                       label: 'Genre',
                       value: _selectedGenre,
-                      options: _getOptionsFromList(_genres),
+                      options: _getOptionsFromList(_genres, isGenre: true),
                       onChanged: (value) {
                         setState(() {
                           _selectedGenre = value ?? '';
@@ -756,16 +821,27 @@ class _MoviesPageState extends State<MoviesPage> {
     return count;
   }
 
-  List<String> _getOptionsFromList(List<Map<String, dynamic>> list) {
+  List<String> _getOptionsFromList(List<Map<String, dynamic>> list, {bool isGenre = false}) {
     try {
       // For genres, use slug if available (matching Laravel), otherwise use name
-      return ['All', ...list.map((item) {
-        // Prefer slug for genres (for API compatibility), fallback to name
-        if (item.containsKey('slug') && item['slug'] != null && (item['slug'] as String).isNotEmpty) {
-          return item['slug'] as String;
-        }
-        return (item['name'] ?? '') as String;
-      }).where((value) => value.isNotEmpty)];
+      return ['All', ...list
+          .where((item) {
+            // Filter out 18+ genre from dropdown (but allow it if set programmatically)
+            if (isGenre) {
+              final name = (item['name'] ?? '').toString().toLowerCase();
+              final slug = (item['slug'] ?? '').toString().toLowerCase();
+              return !name.contains('18+') && !name.contains('18') && 
+                     !slug.contains('18+') && !slug.contains('18');
+            }
+            return true;
+          })
+          .map((item) {
+            // Prefer slug for genres (for API compatibility), fallback to name
+            if (item.containsKey('slug') && item['slug'] != null && (item['slug'] as String).isNotEmpty) {
+              return item['slug'] as String;
+            }
+            return (item['name'] ?? '') as String;
+          }).where((value) => value.isNotEmpty)];
     } catch (e) {
       print('Error extracting options: $e');
       return ['All'];
@@ -799,8 +875,9 @@ class _MoviesPageState extends State<MoviesPage> {
     // Ensure we always have at least 'All' option
     final safeOptions = options.isEmpty ? ['All'] : options;
     
-    // Validate current value, fall back to 'All' if not in list
-    final safeValue = safeOptions.contains(value) ? value : 'All';
+    // Validate current value, but allow "18+" even if not in dropdown (set programmatically)
+    final isEighteenPlus = value.toLowerCase().contains('18+') || value.toLowerCase().contains('18');
+    final safeValue = (safeOptions.contains(value) || isEighteenPlus) ? value : 'All';
     
     final isActive = safeValue != 'All';
     final isDisabled = safeOptions.length == 1; // Only 'All' available
@@ -861,37 +938,51 @@ class _MoviesPageState extends State<MoviesPage> {
                 fontSize: 14,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              items: safeOptions.map((option) {
-                // For genre/category/country, show display name but store slug/name
-                String displayText;
-                if (option == 'All') {
-                  displayText = 'All ${label}s';
-                } else {
-                  // Get display name from the original list
-                  if (label == 'Genre' && _genres.isNotEmpty) {
-                    displayText = _getDisplayNameForFilter(option, _genres);
-                  } else if (label == 'Category' && _categories.isNotEmpty) {
-                    displayText = _getDisplayNameForFilter(option, _categories);
-                  } else if (label == 'Country' && _countries.isNotEmpty) {
-                    displayText = _getDisplayNameForFilter(option, _countries);
-                  } else if (label == 'Language' && _languages.isNotEmpty) {
-                    displayText = _getDisplayNameForFilter(option, _languages);
-                  } else {
-                    displayText = option;
-                  }
-                }
-                
-                return DropdownMenuItem<String>(
-                  value: option,
-                  child: Text(
-                    displayText,
-                    style: TextStyle(
-                      color: option == safeValue ? Colors.red : Colors.white,
-                      fontWeight: option == safeValue ? FontWeight.w600 : FontWeight.normal,
+              items: [
+                // Add "18+" option if it's the selected value but not in safeOptions
+                if (isEighteenPlus && !safeOptions.contains(safeValue))
+                  DropdownMenuItem<String>(
+                    value: safeValue,
+                    child: Text(
+                      '18+',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
+                ...safeOptions.map((option) {
+                  // For genre/category/country, show display name but store slug/name
+                  String displayText;
+                  if (option == 'All') {
+                    displayText = 'All ${label}s';
+                  } else {
+                    // Get display name from the original list
+                    if (label == 'Genre' && _genres.isNotEmpty) {
+                      displayText = _getDisplayNameForFilter(option, _genres);
+                    } else if (label == 'Category' && _categories.isNotEmpty) {
+                      displayText = _getDisplayNameForFilter(option, _categories);
+                    } else if (label == 'Country' && _countries.isNotEmpty) {
+                      displayText = _getDisplayNameForFilter(option, _countries);
+                    } else if (label == 'Language' && _languages.isNotEmpty) {
+                      displayText = _getDisplayNameForFilter(option, _languages);
+                    } else {
+                      displayText = option;
+                    }
+                  }
+                  
+                  return DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(
+                      displayText,
+                      style: TextStyle(
+                        color: option == safeValue ? Colors.red : Colors.white,
+                        fontWeight: option == safeValue ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  );
+                }),
+              ],
               onChanged: isDisabled ? null : (value) {
                 if (value != null) {
                   onChanged(value);

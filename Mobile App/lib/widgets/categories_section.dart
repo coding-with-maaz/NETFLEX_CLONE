@@ -37,7 +37,7 @@ class _CategoriesSectionState extends State<CategoriesSection> {
       // Take first 4 categories
       final topCategories = allCategories.take(4).toList();
 
-      // Find and replace "anime" with "movies" after "k drama"
+      // Find and replace "anime" with "movies" after "k drama", and "comedy" with "18+"
       final modifiedCategories = <Category>[];
       bool foundKDrama = false;
       
@@ -59,7 +59,17 @@ class _CategoriesSectionState extends State<CategoriesSection> {
             slug: 'movies',
           );
           modifiedCategories.add(moviesCategory);
-        } 
+        }
+        // Replace comedy with 18+ genre
+        else if (categoryName.contains('comedy')) {
+          // Create an 18+ category (this will be treated as a genre, not category)
+          final eighteenPlusCategory = Category(
+            id: category.id,
+            name: '18+',
+            slug: '18+',
+          );
+          modifiedCategories.add(eighteenPlusCategory);
+        }
         // Otherwise, add the category as is
         else {
           modifiedCategories.add(category);
@@ -99,6 +109,8 @@ class _CategoriesSectionState extends State<CategoriesSection> {
       return Icons.sports_martial_arts;
     } else if (name.contains('comedy')) {
       return Icons.sentiment_very_satisfied;
+    } else if (name.contains('18+') || name.contains('18')) {
+      return Icons.block;
     } else if (name.contains('horror')) {
       return Icons.warning;
     } else if (name.contains('romance')) {
@@ -118,6 +130,8 @@ class _CategoriesSectionState extends State<CategoriesSection> {
       return Colors.pink;
     } else if (name.contains('drama')) {
       return Colors.orange;
+    } else if (name.contains('18+') || name.contains('18')) {
+      return Colors.purple;
     } else {
       return Colors.red;
     }
