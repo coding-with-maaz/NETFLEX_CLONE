@@ -132,8 +132,17 @@
             console.log('[Home Page] movieData:', movieData);
             console.log('[Home Page] tvShowData:', tvShowData);
             
-            const featuredMovies = movieData.success && movieData.data?.movies ? movieData.data.movies : [];
+            let allFeaturedMovies = movieData.success && movieData.data?.movies ? movieData.data.movies : [];
             const featuredTVShows = tvShowData.success && tvShowData.data?.tvShows ? tvShowData.data.tvShows : [];
+            
+            // Filter out movies with 18+ genre
+            const featuredMovies = allFeaturedMovies.filter(movie => {
+                if (!movie.genres || !Array.isArray(movie.genres)) return true;
+                return !movie.genres.some(genre => {
+                    const genreName = (genre.name || genre || '').toLowerCase();
+                    return genreName.includes('18+') || genreName.includes('18');
+                });
+            });
             
             console.log('[Home Page] Featured movies extracted:', featuredMovies);
             console.log('[Home Page] Featured TV shows extracted:', featuredTVShows);
@@ -454,7 +463,17 @@
                 const apiResult = await result.response.json();
                 
                 if (result.type === 'movies' && apiResult.success && apiResult.data) {
-                    movies = apiResult.data.movies || [];
+                    let allMovies = apiResult.data.movies || [];
+                    
+                    // Filter out movies with 18+ genre
+                    movies = allMovies.filter(movie => {
+                        if (!movie.genres || !Array.isArray(movie.genres)) return true;
+                        return !movie.genres.some(genre => {
+                            const genreName = (genre.name || genre || '').toLowerCase();
+                            return genreName.includes('18+') || genreName.includes('18');
+                        });
+                    });
+                    
                     const pagination = apiResult.data.pagination || {};
                     moviesHasNext = pagination.has_next || false;
                     console.log(`[Home Page] Movies loaded: ${movies.length}, has_next: ${moviesHasNext}`);

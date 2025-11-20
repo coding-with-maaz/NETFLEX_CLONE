@@ -363,8 +363,18 @@
                     const response = await apiFetch(`${API_BASE_URL}/movies/search?${params}`);
                     const data = await response.json();
                     if (data.success) {
-                        results.movies = data.data.movies || [];
-                        results.totalMovies = data.data.pagination?.totalItems || 0;
+                        let allMovies = data.data.movies || [];
+                        
+                        // Filter out movies with 18+ genre
+                        results.movies = allMovies.filter(movie => {
+                            if (!movie.genres || !Array.isArray(movie.genres)) return true;
+                            return !movie.genres.some(genre => {
+                                const genreName = (genre.name || genre || '').toLowerCase();
+                                return genreName.includes('18+') || genreName.includes('18');
+                            });
+                        });
+                        
+                        results.totalMovies = results.movies.length;
                     }
                 } catch (err) {
                     console.error('Movie search error:', err);

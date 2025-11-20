@@ -493,7 +493,17 @@
             const result = await response.json();
             console.log('[Today Movies] Response:', result);
             
-            movies = result.data || result || [];
+            let allMovies = result.data || result || [];
+            
+            // Filter out movies with 18+ genre
+            movies = allMovies.filter(movie => {
+                if (!movie.genres || !Array.isArray(movie.genres)) return true;
+                return !movie.genres.some(genre => {
+                    const genreName = (genre.name || genre || '').toLowerCase();
+                    return genreName.includes('18+') || genreName.includes('18');
+                });
+            });
+            
             console.log('[Today Movies] Movies count:', movies.length);
             
             renderMovies();

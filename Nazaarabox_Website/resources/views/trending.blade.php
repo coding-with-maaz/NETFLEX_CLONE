@@ -264,8 +264,17 @@
             // Extract content based on response structure
             if (contentType === 'all') {
                 // For "all", combine movies and TV shows
-                const moviesData = result.data?.movies || [];
+                let allMoviesData = result.data?.movies || [];
                 const tvShowsData = result.data?.tvShows || [];
+                
+                // Filter out movies with 18+ genre
+                const moviesData = allMoviesData.filter(movie => {
+                    if (!movie.genres || !Array.isArray(movie.genres)) return true;
+                    return !movie.genres.some(genre => {
+                        const genreName = (genre.name || genre || '').toLowerCase();
+                        return genreName.includes('18+') || genreName.includes('18');
+                    });
+                });
                 
                 // Combine and sort by view_count or popularity
                 trendingContent = [...moviesData.map(m => ({...m, type: 'movie'})), 
@@ -275,7 +284,17 @@
                     
                 console.log('[Trending] Combined content:', trendingContent.length, 'items');
             } else if (contentType === 'movies') {
-                trendingContent = result.data?.movies || result.data || [];
+                let allMovies = result.data?.movies || result.data || [];
+                
+                // Filter out movies with 18+ genre
+                trendingContent = allMovies.filter(movie => {
+                    if (!movie.genres || !Array.isArray(movie.genres)) return true;
+                    return !movie.genres.some(genre => {
+                        const genreName = (genre.name || genre || '').toLowerCase();
+                        return genreName.includes('18+') || genreName.includes('18');
+                    });
+                });
+                
                 console.log('[Trending] Movies:', trendingContent.length);
             } else {
                 trendingContent = result.data?.tvShows || result.data || [];
