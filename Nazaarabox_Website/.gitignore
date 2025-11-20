@@ -37,3 +37,20 @@ storage/framework/views/
 bootstrap/cache/
 public/app-release.apk
 FAVICON_SETUP.zip
+
+# Backend files to ignore (keep only frontend)
+/app/
+/routes/
+/config/
+/database/migrations/
+/database/seeders/
+/database/factories/
+/bootstrap/
+/artisan
+composer.json
+composer.lock
+composer.phar
+phpunit.xml
+/tests/
+nazaarabox_laravel/
+*.md
